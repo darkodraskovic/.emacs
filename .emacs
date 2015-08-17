@@ -12,7 +12,7 @@
  '(auto-save-default nil)
  '(blink-cursor-mode nil)
  '(bmkp-last-as-first-bookmark-file "~/.emacs.d/bookmarks")
- '(custom-enabled-themes (quote (Deviant)))
+ '(custom-enabled-themes (quote (tsdh-dark)))
  '(custom-safe-themes
    (quote
     ("fe20c1ea61a2836a5cea69963865b5b8df8c480ccaf3f11ad7f2e1f543f6c274" "7c4aebe99e804e7b41f34e8e2366cadd61c07977e72e4a0ee9498000a95c5d86" default)))
@@ -25,7 +25,7 @@
  '(initial-frame-alist (quote ((fullscreen . maximized))))
  '(org-agenda-files
    (quote
-    ("~/Radovi/Org/Admin/TODO.org" "~/Radovi/Org/Wikidev/Projects/CultureMars.org" "~/Radovi/Org/Wikidev/Projects/Dodo.org" "~/Radovi/Org/Wikidev/Projects/AppDevWithPixijs.org")))
+    ("~/Radovi/Org/Wikidev/Projects/TheVisit.org" "~/Radovi/Org/Admin/TODO.org" "~/Radovi/Org/Wikidev/Projects/AppDevWithPixijs.org")))
  '(org-directory "~/Radovi/Org")
  '(org-export-headline-levels 5)
  '(org-link-frame-setup
@@ -37,6 +37,7 @@
      (wl . wl-other-frame))))
  '(org-refile-use-outline-path (quote file))
  '(org-src-fontify-natively t)
+ '(sentence-end-double-space nil)
  '(smooth-scroll-margin 4)
  '(tool-bar-mode nil)
  '(yas-indent-line (quote auto)))
@@ -45,7 +46,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "DejaVu Sans Mono" :foundry "outline" :slant normal :weight normal :height 113 :width normal))))
+ '(default ((t (:family "DejaVu Sans Mono" :foundry "outline" :slant normal :weight normal :height 90 :width normal))))
  '(js2-error ((t nil))))
 
 
@@ -53,67 +54,88 @@
 ;; MANUAL SETTINGS                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; includes
+;; LOADS
 (load "~/Radovi/Org/Dict/my_emacs_abbrev.el")
 
-(setq global-auto-revert-mode t)
-(global-set-key (kbd "C-z") 'undo)
+;; FUNCS
+(transient-mark-mode 1)
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (end-of-line) ; move to end of line
+  (set-mark (line-beginning-position)))
 
-; Set cursor color
-;; (set-cursor-color "#cccccc")
+(defun copy-line (arg)
+  "Copy lines (as many as prefix argument) in the kill ring"
+  (interactive "p")
+  (kill-ring-save (line-beginning-position)
+		  (line-beginning-position (+ 1 arg)))
+  (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
 
-;; variables
+;; VARIABLES
 (setq default-directory "~/Radovi/Org" )
 (setq bookmark-save-flag 1)
 (setq smooth-scroll-margin 4)
 (setq make-backup-files nil)
 (tool-bar-mode -1)
 (setq fci-rule-column 80)
+(setq global-auto-revert-mode t)
+
+;; switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>
+(windmove-default-keybindings)
+;; "undo" (and “redo”) changes in the window configuration with the key commands ‘C-c 
+(winner-mode 1)
+
+;; (set-cursor-color "#cccccc")
+
+;; split vertically when vising new buffer
+(setq split-height-threshold nil)
+(setq split-width-threshold 0)
 
 ;; GLOBAL KEYBINDINGS
+(global-set-key "\C-c\C-i" 'select-current-line)
+(global-set-key (kbd "C-z") 'undo)
 
 ;; tab
 (global-set-key "\C-j" 'newline-and-indent)
 
+;; MODES
 ;; auto-load major mods
 (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))
 
 ;; auto-load minor modes
 (global-visual-line-mode 1)
 ;; (electric-pair-mode t)
-(ido-mode t)
+
+(setq ido-everywhere t)
 (setq ido-enable-flex-matching 1)
+(ido-mode t)
 
 ;; marmelade, melpa package REPOSITORIES
 (require 'package)
-(add-to-list 'package-archives 
-	     '("marmalade" .
-	       "http://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (package-initialize)
 
-;; DIRED
+;; Dired
 (require 'dired+)
 (setq dired-listing-switches "-aBhl  --group-directories-first")
 
-;; NEOTREE
+;; Neotree
 (require 'neotree)
 (global-set-key [f8] 'neotree-toggle)
 
-;; YASNIPPET
+;; Yasnippet
 ;; should be loaded before auto complete so that they can work together
 (require 'yasnippet)
-(yas-global-mode 1)
+;; (yas-global-mode 1)
+(yas-reload-all)
 
-;; AUTO-COMPLETE
+;; Auto-complete
 (require 'auto-complete-config)
 (ac-config-default)
 (setq ac-auto-start 3)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-
-;; split vertically when vising new buffer
-(setq split-height-threshold nil)
-(setq split-width-threshold 0)
 
 ;; flymake
 ;; (add-hook 'find-file-hook 'flymake-find-file-hook)
@@ -157,33 +179,48 @@
 (add-hook 'js2-mode-hook 'auto-complete-mode)
 (add-hook 'js2-mode-hook '(lambda() (setq ac-auto-start 4)))
 ;; (add-hook 'js2-mode-hook 'ac-js2-mode)
+
 (add-hook 'js2-mode-hook 'yas-minor-mode)
+
 (add-hook 'js2-mode-hook 'linum-mode)
+
 ;; (require 'flymake-jslint)
 ;; (add-hook 'js2-mode-hook
 ;; 	  (lambda () (flymake-mode t)))
-(js2r-add-keybindings-with-prefix "C-c C-m")
+
 (require 'js2-refactor)
 (add-hook 'js2-mode-hook #'js2-refactor-mode)
-(add-hook 'js2-mode-hook 'fci-mode)
+(js2r-add-keybindings-with-prefix "C-c C-m")
+
+;; (add-hook 'js2-mode-hook 'fci-mode)
+
 (add-hook 'js2-mode-hook 'electric-pair-mode)
+
 (add-hook 'js2-mode-hook (lambda ()
 			    (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
 			    ))
 
+;; GLSL mode
+(add-hook 'glsl-mode-hook 'auto-complete-mode)
+(add-hook 'glsl-mode-hook '(lambda() (setq ac-auto-start 4)))
+(add-hook 'glsl-mode-hook (lambda ()
+			    (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
+			    ))
+
+
 ;; TERN mode
-;; (add-to-list 'ac-modes 'tern-mode)
-;; (autoload 'tern-mode "tern.el" nil t)
-;; (add-hook 'js2-mode-hook (lambda () (tern-mode t)))
-;; ;; tern + auto-complete
-;; (eval-after-load 'tern
-;;   '(progn
-;;      (require 'tern-auto-complete)
-;;      (tern-ac-setup)))
-;; (add-hook 'tern-mode-hook '(lambda() (setq ac-auto-start 3)))
-;; (add-hook 'tern-mode-hook (lambda ()
-;; 			    (local-set-key "\C-c\C-y" 'tern-ac-complete)
-;; 			    ))
+(add-to-list 'ac-modes 'tern-mode)
+(autoload 'tern-mode "tern.el" nil t)
+(add-hook 'js2-mode-hook (lambda () (tern-mode t)))
+;; tern + auto-complete
+(eval-after-load 'tern
+  '(progn
+     (require 'tern-auto-complete)
+     (tern-ac-setup)))
+(add-hook 'tern-mode-hook '(lambda() (setq ac-auto-start 3)))
+(add-hook 'tern-mode-hook (lambda ()
+			    (local-set-key "\C-c\C-y" 'tern-ac-complete)
+			    ))
 
 ;; jQuery-doc
 ;; (require 'jquery-doc)
@@ -203,14 +240,26 @@
 ;; LUA-MODE ;;
 ;;;;;;;;;;;;;;
 (add-hook 'lua-mode-hook 'auto-complete-mode)
+(add-hook 'lua-mode-hook 'hs-minor-mode)
+(add-hook 'lua-mode-hook 'imenu-add-menubar-index)
 (add-hook 'lua-mode-hook '(lambda() (setq ac-auto-start 4)))
 (add-hook 'lua-mode-hook 'yas-minor-mode)
 (add-hook 'lua-mode-hook 'linum-mode)
-(add-hook 'lua-mode-hook 'fci-mode)
+;; (add-hook 'lua-mode-hook 'fci-mode)
 (add-hook 'lua-mode-hook 'electric-pair-mode)
 (add-hook 'lua-mode-hook (lambda ()
 			    (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
 			    ))
+
+(require 'flymake-lua)
+(add-hook 'lua-mode-hook 'flymake-lua-load)
+
+(add-hook 'lua-mode-hook '(lambda ()
+			    (local-set-key "\C-x\C-e" 'lua-send-defun)
+			    (local-set-key "\C-\M-x" 'lua-send-region)
+			    (local-set-key "\C-cb" 'lua-send-buffer)
+			    ))
+
 ;;;;;;;;;;;;;;
 ;; ORG-MODE ;;
 ;;;;;;;;;;;;;;
@@ -245,11 +294,11 @@
 ;; file OR file+headline OR file+datetree
 (setq org-capture-templates
       '(
-	("f" "Filo & Human" entry (file "~/Radovi/Org/Remember/ideje.org")
-	 "* %?\n  %i\n  %a\n  %U")
-	("g" "Game Stud & Design" entry (file "~/Radovi/Org/Remember/ideas&quotes.org")
+	("f" "Filo & Human" entry (file "~/Radovi/Org/Remember/filozofem.org")
 	 "* %?\n  %i\n  %a\n  %U")
 	("b" "Blog" entry (file "~/Radovi/Org/Remember/blog.org")
+	 "* %?\n  %i\n  %a\n  %U")
+	("l" "Log" entry (file "~/Radovi/Org/Remember/log.org")
 	 "* %?\n  %i\n  %a\n  %U")
 	))
 
@@ -264,3 +313,7 @@
 (fset 'hshtg-macro
       (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217826 67108896 134217830 134217847 24 6 126 47 82 97 100 111 118 105 return 79 114 103 return 68 105 99 116 return 111 114 103 45 109 111 100 101 return 134217790 134217790 25 return 24 19 24 107 return 24 19] 0 "%d")) arg)))
 (put 'erase-buffer 'disabled nil)
+
+;; for inserting lua related keywords into the dictionary file
+(fset 'lelua
+   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217826 67108896 134217830 134217847 24 6 126 47 82 97 100 111 118 105 return 79 114 103 return 68 105 99 116 return 108 117 97 45 109 111 100 101 return 134217790 134217790 25 return 24 19 24 107 return 134217848 97 99 45 99 108 101 97 114 tab return] 0 "%d")) arg)))
