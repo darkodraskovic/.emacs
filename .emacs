@@ -46,7 +46,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "DejaVu Sans Mono" :foundry "outline" :slant normal :weight normal :height 90 :width normal))))
+ '(default ((t (:family "DejaVu Sans Mono" :foundry "outline" :slant normal :weight normal :height 100 :width normal))))
  '(js2-error ((t nil))))
 
 
@@ -95,6 +95,7 @@
 ;; GLOBAL KEYBINDINGS
 (global-set-key "\C-c\C-i" 'select-current-line)
 (global-set-key (kbd "C-z") 'undo)
+(global-set-key (kbd "M-i") 'imenu)
 
 ;; tab
 (global-set-key "\C-j" 'newline-and-indent)
@@ -116,6 +117,14 @@
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (package-initialize)
+
+;; Helm
+(require 'helm-config)
+(helm-mode t)
+;; You have to bind helm-M-x to M-x manually. Otherwise, you still get Helm completion, but using the vanilla M-x that does not provides the above features like showing key bindings and TAB to open built-in documentation.
+(global-set-key (kbd "M-x") 'helm-M-x)
+(setq helm-M-x-fuzzy-match t) ;; optional fuzzy matching for helm-M-x
+
 
 ;; Dired
 (require 'dired+)
@@ -248,7 +257,7 @@
 ;; (add-hook 'lua-mode-hook 'fci-mode)
 (add-hook 'lua-mode-hook 'electric-pair-mode)
 (add-hook 'lua-mode-hook (lambda ()
-			    (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
+			   (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
 			    ))
 
 (require 'flymake-lua)
@@ -258,6 +267,8 @@
 			    (local-set-key "\C-x\C-e" 'lua-send-defun)
 			    (local-set-key "\C-\M-x" 'lua-send-region)
 			    (local-set-key "\C-cb" 'lua-send-buffer)
+			    (local-set-key "\M-g\M-n" 'flymake-goto-next-error)
+			    (local-set-key "\M-g\M-p" 'flymake-goto-prev-error)
 			    ))
 
 ;;;;;;;;;;;;;;
