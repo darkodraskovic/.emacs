@@ -124,6 +124,13 @@
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (package-initialize)
 
+;; MoveText is extracted from Basic edit toolkit.
+;; It allows you to move the current line using M-up / M-down
+;; if a region is marked, it will move the region instead.
+
+(require 'move-text)
+(move-text-default-bindings)
+
 ;; HELM
 (require 'helm-config)
 (helm-mode t)
@@ -172,13 +179,13 @@
 ;; JAVASCRIPT ;;
 ;;;;;;;;;;;;;;;;
 (defun comment-or-uncomment-region-or-line ()
-    "Comments or uncomments the region or the current line if there's no active region."
-    (interactive)
-    (let (beg end)
-        (if (region-active-p)
-            (setq beg (region-beginning) end (region-end))
-            (setq beg (line-beginning-position) end (line-end-position)))
-        (comment-or-uncomment-region beg end)))
+  "Comments or uncomments the region or the current line if there's no active region."
+  (interactive)
+  (let (beg end)
+    (if (region-active-p)
+        (setq beg (region-beginning) end (region-end))
+      (setq beg (line-beginning-position) end (line-end-position)))
+    (comment-or-uncomment-region beg end)))
 
 ;; nodejs/rhino REPL
 (require 'js-comint)
