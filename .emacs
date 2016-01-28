@@ -46,7 +46,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "DejaVu Sans Mono" :foundry "outline" :slant normal :weight normal :height 100 :width normal))))
+ '(default ((t (:family "DejaVu Sans Mono" :foundry "outline" :slant normal :weight normal :height 96 :width normal))))
  '(js2-error ((t nil))))
 
 
@@ -80,6 +80,12 @@
 (tool-bar-mode -1)
 (setq fci-rule-column 80)
 (setq global-auto-revert-mode t)
+
+;; tabs&indents
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+;; (setq indent-line-function 'insert-tab)
+;; (setq tab-stop-list (number-sequence 4 200 4))
 
 ;; switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>
 (windmove-default-keybindings)
@@ -118,13 +124,18 @@
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (package-initialize)
 
-;; Helm
+;; HELM
 (require 'helm-config)
 (helm-mode t)
+
 ;; You have to bind helm-M-x to M-x manually. Otherwise, you still get Helm completion, but using the vanilla M-x that does not provides the above features like showing key bindings and TAB to open built-in documentation.
 (global-set-key (kbd "M-x") 'helm-M-x)
 (setq helm-M-x-fuzzy-match t) ;; optional fuzzy matching for helm-M-x
 
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+;; (global-set-key (kbd "C-x c o") 'helm-occur)
+(global-set-key (kbd "M-s o") 'helm-occur)
+(global-set-key (kbd "M-g s") 'helm-do-grep)
 
 ;; Dired
 (require 'dired+)
@@ -136,9 +147,9 @@
 
 ;; Yasnippet
 ;; should be loaded before auto complete so that they can work together
-(require 'yasnippet)
+;; (require 'yasnippet)
 ;; (yas-global-mode 1)
-(yas-reload-all)
+;; (yas-reload-all)
 
 ;; Auto-complete
 (require 'auto-complete-config)
@@ -160,6 +171,15 @@
 ;;;;;;;;;;;;;;;;
 ;; JAVASCRIPT ;;
 ;;;;;;;;;;;;;;;;
+(defun comment-or-uncomment-region-or-line ()
+    "Comments or uncomments the region or the current line if there's no active region."
+    (interactive)
+    (let (beg end)
+        (if (region-active-p)
+            (setq beg (region-beginning) end (region-end))
+            (setq beg (line-beginning-position) end (line-end-position)))
+        (comment-or-uncomment-region beg end)))
+
 ;; nodejs/rhino REPL
 (require 'js-comint)
 (setq inferior-js-program-command "/usr/bin/node")
@@ -174,6 +194,7 @@
 			    (local-set-key "\C-cb" 'js-send-buffer)
 			    (local-set-key "\C-c\C-b" 'js-send-buffer-and-go)
 			    (local-set-key "\C-cl" 'js-load-file-and-go)
+                (local-set-key "\C-c\C-c" 'comment-or-uncomment-region-or-line)
 			    ))
 
 (add-hook 'js2-minor-mode-hook '(lambda ()
@@ -182,12 +203,16 @@
 				  (local-set-key "\C-cb" 'js-send-buffer)
 				  (local-set-key "\C-c\C-b" 'js-send-buffer-and-go)
 				  (local-set-key "\C-cl" 'js-load-file-and-go)
+                  (local-set-key "\C-c\C-c" 'comment-or-uncomment-region-or-line)
 				  ))
 
 ;; JS2-MODE hooks
+(add-hook 'js-mode-hook 'js2-minor-mode)
+(add-hook 'js2-mode-hook 'ac-js2-mode)
+(setq js2-highlight-level 3)
+(add-hook 'js2-mode-hook 'show-paren-mode)
 (add-hook 'js2-mode-hook 'auto-complete-mode)
 (add-hook 'js2-mode-hook '(lambda() (setq ac-auto-start 4)))
-;; (add-hook 'js2-mode-hook 'ac-js2-mode)
 
 (add-hook 'js2-mode-hook 'yas-minor-mode)
 
@@ -198,7 +223,7 @@
 ;; 	  (lambda () (flymake-mode t)))
 
 (require 'js2-refactor)
-(add-hook 'js2-mode-hook #'js2-refactor-mode)
+(add-hook 'js2-mode-hook 'js2-refactor-mode)
 (js2r-add-keybindings-with-prefix "C-c C-m")
 
 ;; (add-hook 'js2-mode-hook 'fci-mode)
@@ -206,70 +231,70 @@
 (add-hook 'js2-mode-hook 'electric-pair-mode)
 
 (add-hook 'js2-mode-hook (lambda ()
-			    (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
-			    ))
+			   (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
+			   ))
 
-;; GLSL mode
-(add-hook 'glsl-mode-hook 'auto-complete-mode)
-(add-hook 'glsl-mode-hook '(lambda() (setq ac-auto-start 4)))
-(add-hook 'glsl-mode-hook (lambda ()
-			    (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
-			    ))
+;; ;; GLSL mode
+;; ;; (add-hook 'glsl-mode-hook 'auto-complete-mode)
+;; ;; (add-hook 'glsl-mode-hook '(lambda() (setq ac-auto-start 4)))
+;; ;; (add-hook 'glsl-mode-hook (lambda ()
+;; ;; 			    (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
+;; ;; 			    ))
 
 
-;; TERN mode
-(add-to-list 'ac-modes 'tern-mode)
-(autoload 'tern-mode "tern.el" nil t)
-(add-hook 'js2-mode-hook (lambda () (tern-mode t)))
-;; tern + auto-complete
-(eval-after-load 'tern
-  '(progn
-     (require 'tern-auto-complete)
-     (tern-ac-setup)))
-(add-hook 'tern-mode-hook '(lambda() (setq ac-auto-start 3)))
-(add-hook 'tern-mode-hook (lambda ()
-			    (local-set-key "\C-c\C-y" 'tern-ac-complete)
-			    ))
+;; ;; TERN mode
+;; (add-to-list 'ac-modes 'tern-mode)
+;; (autoload 'tern-mode "tern.el" nil t)
+;; (add-hook 'js2-mode-hook (lambda () (tern-mode t)))
+;; ;; tern + auto-complete
+;; (eval-after-load 'tern
+;;   '(progn
+;;      (require 'tern-auto-complete)
+;;      (tern-ac-setup)))
+;; (add-hook 'tern-mode-hook '(lambda() (setq ac-auto-start 3)))
+;; (add-hook 'tern-mode-hook (lambda ()
+;; 			    (local-set-key "\C-c\C-y" 'tern-ac-complete)
+;; 			    ))
 
-;; jQuery-doc
-;; (require 'jquery-doc)
-;; (add-hook 'js2-mode-hook 'jquery-doc-setup)
+;; ;; jQuery-doc
+;; ;; (require 'jquery-doc)
+;; ;; (add-hook 'js2-mode-hook 'jquery-doc-setup)
 
-;; HTML
-(add-hook 'html-mode-hook 'auto-complete-mode)
-(add-hook 'html-mode-hook 'yas-minor-mode)
-(add-hook 'html-mode-hook '(lambda() (setq ac-auto-start 4)))
+;; ;; HTML
+;; (add-hook 'html-mode-hook 'auto-complete-mode)
+;; (add-hook 'html-mode-hook 'yas-minor-mode)
+;; (add-hook 'html-mode-hook '(lambda() (setq ac-auto-start 4)))
 
-;; WEB-MODE
-;; (require 'web-mode)
-;; (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-;; (add-hook 'web-mode-hook 'yas-minor-mode)
+;; ;; WEB-MODE
+;; ;; (require 'web-mode)
+;; ;; (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+;; ;; (add-hook 'web-mode-hook 'yas-minor-mode)
 
 ;;;;;;;;;;;;;;
 ;; LUA-MODE ;;
 ;;;;;;;;;;;;;;
-(add-hook 'lua-mode-hook 'auto-complete-mode)
-(add-hook 'lua-mode-hook 'hs-minor-mode)
-(add-hook 'lua-mode-hook 'imenu-add-menubar-index)
-(add-hook 'lua-mode-hook '(lambda() (setq ac-auto-start 4)))
-(add-hook 'lua-mode-hook 'yas-minor-mode)
-(add-hook 'lua-mode-hook 'linum-mode)
-;; (add-hook 'lua-mode-hook 'fci-mode)
-(add-hook 'lua-mode-hook 'electric-pair-mode)
-(add-hook 'lua-mode-hook (lambda ()
-			   (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
-			    ))
+;; (add-hook 'lua-mode-hook 'auto-complete-mode)
+;; (add-hook 'lua-mode-hook 'hs-minor-mode)
+;; (add-hook 'lua-mode-hook 'imenu-add-menubar-index)
+;; (add-hook 'lua-mode-hook '(lambda() (setq ac-auto-start 4)))
+;; (add-hook 'lua-mode-hook 'yas-minor-mode)
+;; (add-hook 'lua-mode-hook 'linum-mode)
+;; ;; (add-hook 'lua-mode-hook 'fci-mode)
+;; (add-hook 'lua-mode-hook 'electric-pair-mode)
+;; (add-hook 'lua-mode-hook (lambda ()
+;; 			   (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
+;; 			    ))
 
-(require 'flymake-lua)
-(add-hook 'lua-mode-hook 'flymake-lua-load)
+;; (require 'flymake-lua)
+;; (add-hook 'lua-mode-hook 'flymake-lua-load)
 
-(add-hook 'lua-mode-hook '(lambda ()
-			    (local-set-key "\C-x\C-e" 'lua-send-defun)
-			    (local-set-key "\C-\M-x" 'lua-send-region)
-			    (local-set-key "\C-cb" 'lua-send-buffer)
-			    (local-set-key "\M-g\M-n" 'flymake-goto-next-error)
-			    (local-set-key "\M-g\M-p" 'flymake-goto-prev-error)
-			    ))
+;; (add-hook 'lua-mode-hook '(lambda ()
+;; 			    (local-set-key "\C-x\C-e" 'lua-send-defun)
+;; 			    (local-set-key "\C-\M-x" 'lua-send-region)
+;; 			    (local-set-key "\C-cb" 'lua-send-buffer)
+;; 			    (local-set-key "\M-g\M-n" 'flymake-goto-next-error)
+;; 			    (local-set-key "\M-g\M-p" 'flymake-goto-prev-error)
+;; 			    ))
 
 ;;;;;;;;;;;;;;
 ;; ORG-MODE ;;
@@ -305,15 +330,15 @@
 ;; file OR file+headline OR file+datetree
 (setq org-capture-templates
       '(
-	("f" "Filo & Human" entry (file "~/Radovi/Org/Remember/filozofem.org")
-	 "* %?\n  %i\n  %a\n  %U")
-	("b" "Blog" entry (file "~/Radovi/Org/Remember/blog.org")
-	 "* %?\n  %i\n  %a\n  %U")
-	("l" "Log" entry (file "~/Radovi/Org/Remember/log.org")
+	("f" "Filozofija & humanistika" entry (file "~/Radovi/Org/Wikith/Journal/th.org")
+	 "* FILOZOFEM\n%U\n*%f*\n%i\n\n###\n\n%?")
+	("g" "Game studies & design" entry (file "~/Radovi/Org/Wikith/Journal/dev.org")
+	 "* %?\n  %i\n  %a\n  %U")       
+	("b" "Blog - Filo & Human | Game stud & design" entry (file "~/Radovi/Org/Wikith/Journal/blog.org")
 	 "* %?\n  %i\n  %a\n  %U")
 	))
 
-; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+					; Targets include this file and any file contributing to the agenda - up to 9 levels deep
 (setq org-refile-targets (quote ((nil :maxlevel . 9)
                                  (org-agenda-files :maxlevel . 9))))
 ;;;;;;;;;;;;
@@ -327,4 +352,4 @@
 
 ;; for inserting lua related keywords into the dictionary file
 (fset 'lelua
-   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217826 67108896 134217830 134217847 24 6 126 47 82 97 100 111 118 105 return 79 114 103 return 68 105 99 116 return 108 117 97 45 109 111 100 101 return 134217790 134217790 25 return 24 19 24 107 return 134217848 97 99 45 99 108 101 97 114 tab return] 0 "%d")) arg)))
+      (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217826 67108896 134217830 134217847 24 6 126 47 82 97 100 111 118 105 return 79 114 103 return 68 105 99 116 return 108 117 97 45 109 111 100 101 return 134217790 134217790 25 return 24 19 24 107 return 134217848 97 99 45 99 108 101 97 114 tab return] 0 "%d")) arg)))
