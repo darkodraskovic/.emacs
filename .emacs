@@ -17,6 +17,7 @@
    (quote
     ("fe20c1ea61a2836a5cea69963865b5b8df8c480ccaf3f11ad7f2e1f543f6c274" "7c4aebe99e804e7b41f34e8e2366cadd61c07977e72e4a0ee9498000a95c5d86" default)))
  '(custom-theme-directory "~/.emacs.d/themes")
+ '(desktop-path (quote ("~/.emacs.d/" "~" "~/.emacs.d/desktop")))
  '(dired-dwim-target t)
  '(dired-find-subdir nil)
  '(global-auto-revert-mode t)
@@ -49,28 +50,12 @@
  '(default ((t (:family "DejaVu Sans Mono" :foundry "outline" :slant normal :weight normal :height 96 :width normal))))
  '(js2-error ((t nil))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MANUAL SETTINGS                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; LOADS
 (load "~/Radovi/Org/Dict/my_emacs_abbrev.el")
-
-;; FUNCS
-(transient-mark-mode 1)
-(defun select-current-line ()
-  "Select the current line"
-  (interactive)
-  (end-of-line) ; move to end of line
-  (set-mark (line-beginning-position)))
-
-(defun copy-line (arg)
-  "Copy lines (as many as prefix argument) in the kill ring"
-  (interactive "p")
-  (kill-ring-save (line-beginning-position)
-		  (line-beginning-position (+ 1 arg)))
-  (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
 
 ;; VARIABLES
 (setq default-directory "~/Radovi/Org" )
@@ -99,7 +84,6 @@
 (setq split-width-threshold 0)
 
 ;; GLOBAL KEYBINDINGS
-(global-set-key "\C-c\C-i" 'select-current-line)
 (global-set-key (kbd "C-z") 'undo)
 (global-set-key (kbd "M-i") 'imenu)
 
@@ -124,7 +108,9 @@
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (package-initialize)
 
-;; MoveText is extracted from Basic edit toolkit.
+(desktop-save-mode 1)
+
+;; MOVETEXT is extracted from Basic edit toolkit.
 ;; It allows you to move the current line using M-up / M-down
 ;; if a region is marked, it will move the region instead.
 
@@ -132,8 +118,15 @@
 (move-text-default-bindings)
 
 ;; HELM
+(require 'helm)
 (require 'helm-config)
 (helm-mode t)
+
+;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
+;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
+;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
+(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-unset-key (kbd "C-x c"))
 
 ;; You have to bind helm-M-x to M-x manually. Otherwise, you still get Helm completion, but using the vanilla M-x that does not provides the above features like showing key bindings and TAB to open built-in documentation.
 (global-set-key (kbd "M-x") 'helm-M-x)
@@ -176,8 +169,17 @@
 ;; (global-set-key "\M-\\" 'my-complete-file-name)
 
 ;;;;;;;;;;;;;;;;
-;; JAVASCRIPT ;;
+;; COMMANDS   ;;
 ;;;;;;;;;;;;;;;;
+(transient-mark-mode 1)
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (end-of-line) ; move to end of line
+  (set-mark (line-beginning-position)))
+
+(global-set-key "\C-c\C-i" 'select-current-line)
+
 (defun comment-or-uncomment-region-or-line ()
   "Comments or uncomments the region or the current line if there's no active region."
   (interactive)
@@ -186,6 +188,34 @@
         (setq beg (region-beginning) end (region-end))
       (setq beg (line-beginning-position) end (line-end-position)))
     (comment-or-uncomment-region beg end)))
+
+(defun duplicate-line-or-region (&optional n)
+  "Duplicate current line, or region if active.
+With argument N, make N copies.
+With negative N, comment out original line and use the absolute value."
+  (interactive "*p")
+  (let ((use-region (use-region-p)))
+    (save-excursion
+      (let ((text (if use-region        ;Get region if active, otherwise line
+                      (buffer-substring (region-beginning) (region-end))
+                    (prog1 (thing-at-point 'line)
+                      (end-of-line)
+                      (if (< 0 (forward-line 1)) ;Go to beginning of next line, or make a new one
+                          (newline))))))
+        (dotimes (i (abs (or n 1)))     ;Insert N times, or once if not specified
+          (insert text))))
+    (if use-region nil                  ;Only if we're working with a line (not a region)
+      (let ((pos (- (point) (line-beginning-position)))) ;Save column
+        (if (> 0 n)                             ;Comment out original with negative arg
+            (comment-region (line-beginning-position) (line-end-position)))
+        (forward-line 1)
+        (forward-char pos)))))
+
+(global-set-key [?\C-c ?d] 'duplicate-line-or-region)
+
+;;;;;;;;;;;;;;;;
+;; JAVASCRIPT ;;
+;;;;;;;;;;;;;;;;
 
 ;; nodejs/rhino REPL
 (require 'js-comint)
@@ -348,6 +378,8 @@
 					; Targets include this file and any file contributing to the agenda - up to 9 levels deep
 (setq org-refile-targets (quote ((nil :maxlevel . 9)
                                  (org-agenda-files :maxlevel . 9))))
+
+
 ;;;;;;;;;;;;
 ;; MACROS ;;
 ;;;;;;;;;;;;
@@ -360,3 +392,6 @@
 ;; for inserting lua related keywords into the dictionary file
 (fset 'lelua
       (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217826 67108896 134217830 134217847 24 6 126 47 82 97 100 111 118 105 return 79 114 103 return 68 105 99 116 return 108 117 97 45 109 111 100 101 return 134217790 134217790 25 return 24 19 24 107 return 134217848 97 99 45 99 108 101 97 114 tab return] 0 "%d")) arg)))
+
+(fset 'pare
+   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217832 14 134217765 17 10 return return 33 return] 0 "%d")) arg)))
