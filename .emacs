@@ -15,11 +15,12 @@
  '(custom-enabled-themes (quote (tsdh-dark)))
  '(custom-safe-themes
    (quote
-    ("fe20c1ea61a2836a5cea69963865b5b8df8c480ccaf3f11ad7f2e1f543f6c274" "7c4aebe99e804e7b41f34e8e2366cadd61c07977e72e4a0ee9498000a95c5d86" default)))
+    ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "fe20c1ea61a2836a5cea69963865b5b8df8c480ccaf3f11ad7f2e1f543f6c274" "7c4aebe99e804e7b41f34e8e2366cadd61c07977e72e4a0ee9498000a95c5d86" default)))
  '(custom-theme-directory "~/.emacs.d/themes")
  '(desktop-path (quote ("~/.emacs.d/" "~" "~/.emacs.d/desktop")))
  '(dired-dwim-target t)
  '(dired-find-subdir nil)
+ '(fci-rule-color "#073642")
  '(global-auto-revert-mode t)
  '(grep-command "grep -nHir -e ")
  '(inhibit-startup-screen t)
@@ -39,8 +40,30 @@
  '(org-refile-use-outline-path (quote file))
  '(org-src-fontify-natively t)
  '(sentence-end-double-space nil)
- '(smooth-scroll-margin 4)
+ '(smooth-scroll-margin 12)
  '(tool-bar-mode nil)
+ '(vc-annotate-background nil)
+ '(vc-annotate-color-map
+   (quote
+    ((20 . "#dc322f")
+     (40 . "#cb4b16")
+     (60 . "#b58900")
+     (80 . "#859900")
+     (100 . "#2aa198")
+     (120 . "#268bd2")
+     (140 . "#d33682")
+     (160 . "#6c71c4")
+     (180 . "#dc322f")
+     (200 . "#cb4b16")
+     (220 . "#b58900")
+     (240 . "#859900")
+     (260 . "#2aa198")
+     (280 . "#268bd2")
+     (300 . "#d33682")
+     (320 . "#6c71c4")
+     (340 . "#dc322f")
+     (360 . "#cb4b16"))))
+ '(vc-annotate-very-old-color nil)
  '(yas-indent-line (quote auto)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -60,7 +83,6 @@
 ;; VARIABLES
 (setq default-directory "~/Radovi/Org" )
 (setq bookmark-save-flag 1)
-(setq smooth-scroll-margin 4)
 (setq make-backup-files nil)
 (tool-bar-mode -1)
 (setq fci-rule-column 80)
@@ -213,6 +235,133 @@ With negative N, comment out original line and use the absolute value."
 
 (global-set-key [?\C-c ?d] 'duplicate-line-or-region)
 
+(desktop-save-mode 1)
+
+;; MOVETEXT is extracted from Basic edit toolkit.
+;; It allows you to move the current line using M-up / M-down
+;; if a region is marked, it will move the region instead.
+
+(require 'move-text)
+(move-text-default-bindings)
+
+;; HELM
+(require 'helm)
+(require 'helm-config)
+(helm-mode t)
+
+;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
+;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
+;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
+(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-unset-key (kbd "C-x c"))
+
+;; You have to bind helm-M-x to M-x manually. Otherwise, you still get Helm completion, but using the vanilla M-x that does not provides the above features like showing key bindings and TAB to open built-in documentation.
+(global-set-key (kbd "M-x") 'helm-M-x)
+(setq helm-M-x-fuzzy-match t) ;; optional fuzzy matching for helm-M-x
+
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+;; (global-set-key (kbd "C-x c o") 'helm-occur)
+(global-set-key (kbd "M-s o") 'helm-occur)
+(global-set-key (kbd "M-g s") 'helm-do-grep)
+
+;; Dired
+(require 'dired+)
+(setq dired-listing-switches "-aBhl  --group-directories-first")
+
+;; Neotree
+(require 'neotree)
+(global-set-key [f8] 'neotree-toggle)
+
+;; Yasnippet
+;; should be loaded before auto complete so that they can work together
+;; (require 'yasnippet)
+;; (yas-global-mode 1)
+;; (yas-reload-all)
+
+;; Auto-complete
+(require 'auto-complete-config)
+(ac-config-default)
+(setq ac-auto-start 3)
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+
+;; flymake
+;; (add-hook 'find-file-hook 'flymake-find-file-hook)
+
+;; HIPPIE
+(global-set-key "\M- " 'hippie-expand)
+;; completing the name of the file in the buffer. 
+;; (fset 'my-complete-file-name
+;;       (make-hippie-expand-function '(try-complete-file-name-partially
+;; 				     try-complete-file-name)))
+;; (global-set-key "\M-\\" 'my-complete-file-name)
+
+;;;;;;;;;;;;;;;;
+;; COMMANDS   ;;
+;;;;;;;;;;;;;;;;
+(transient-mark-mode 1)
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (end-of-line) ; move to end of line
+  (set-mark (line-beginning-position)))
+
+(global-set-key "\C-c\C-i" 'select-current-line)
+
+(defun comment-or-uncomment-region-or-line ()
+  "Comments or uncomments the region or the current line if there's no active region."
+  (interactive)
+  (let (beg end)
+    (if (region-active-p)
+        (setq beg (region-beginning) end (region-end))
+      (setq beg (line-beginning-position) end (line-end-position)))
+    (comment-or-uncomment-region beg end)))
+
+(defun duplicate-line-or-region (&optional n)
+  "Duplicate current line, or region if active.
+With argument N, make N copies.
+With negative N, comment out original line and use the absolute value."
+  (interactive "*p")
+  (let ((use-region (use-region-p)))
+    (save-excursion
+      (let ((text (if use-region        ;Get region if active, otherwise line
+                      (buffer-substring (region-beginning) (region-end))
+                    (prog1 (thing-at-point 'line)
+                      (end-of-line)
+                      (if (< 0 (forward-line 1)) ;Go to beginning of next line, or make a new one
+                          (newline))))))
+        (dotimes (i (abs (or n 1)))     ;Insert N times, or once if not specified
+          (insert text))))
+    (if use-region nil                  ;Only if we're working with a line (not a region)
+      (let ((pos (- (point) (line-beginning-position)))) ;Save column
+        (if (> 0 n)                             ;Comment out original with negative arg
+            (comment-region (line-beginning-position) (line-end-position)))
+        (forward-line 1)
+        (forward-char pos)))))
+
+(global-set-key [?\C-c ?d] 'duplicate-line-or-region)
+
+;;;;;;;;;;;;;;;;
+;; PYTHON     ;;
+;;;;;;;;;;;;;;;;
+(require 'python-environment)
+
+(add-hook 'python-mode-hook 'flycheck-mode)
+(add-hook 'python-mode-hook 'elpy-mode)
+(add-hook 'python-mode-hook 'linum-mode)
+(add-hook 'python-mode-hook 'electric-pair-mode)
+
+(add-hook 'python-mode-hook 'jedi:setup)
+;; (setq jedi:complete-on-dot t)
+
+(add-hook 'python-mode-hook (lambda ()
+                              (local-set-key "\C-c\C-u" 'comment-or-uncomment-region-or-line)
+                              (local-set-key "\C-cr" 'pyrogue)
+                              (setq-local ac-auto-start nil)
+                              ;; (define-key ac-mode-map (kbd "M-/") 'auto-complete)
+                              (local-set-key "\M-/" 'jedi:complete)
+                              (setq-local resize-mini-windows nil)
+                              ))
+
 ;;;;;;;;;;;;;;;;
 ;; JAVASCRIPT ;;
 ;;;;;;;;;;;;;;;;
@@ -310,28 +459,30 @@ With negative N, comment out original line and use the absolute value."
 ;;;;;;;;;;;;;;
 ;; LUA-MODE ;;
 ;;;;;;;;;;;;;;
-;; (add-hook 'lua-mode-hook 'auto-complete-mode)
-;; (add-hook 'lua-mode-hook 'hs-minor-mode)
-;; (add-hook 'lua-mode-hook 'imenu-add-menubar-index)
-;; (add-hook 'lua-mode-hook '(lambda() (setq ac-auto-start 4)))
-;; (add-hook 'lua-mode-hook 'yas-minor-mode)
-;; (add-hook 'lua-mode-hook 'linum-mode)
-;; ;; (add-hook 'lua-mode-hook 'fci-mode)
-;; (add-hook 'lua-mode-hook 'electric-pair-mode)
-;; (add-hook 'lua-mode-hook (lambda ()
-;; 			   (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
-;; 			    ))
 
-;; (require 'flymake-lua)
-;; (add-hook 'lua-mode-hook 'flymake-lua-load)
+(add-hook 'lua-mode-hook 'auto-complete-mode)
+(add-hook 'lua-mode-hook 'hs-minor-mode)
+(add-hook 'lua-mode-hook 'imenu-add-menubar-index)
+(add-hook 'lua-mode-hook '(lambda() (setq ac-auto-start 4)))
+(add-hook 'lua-mode-hook 'yas-minor-mode)
+(add-hook 'lua-mode-hook 'linum-mode)
+;; (add-hook 'lua-mode-hook 'fci-mode)
+(add-hook 'lua-mode-hook 'electric-pair-mode)
+(add-hook 'lua-mode-hook (lambda ()
+                           (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
+                           (local-set-key "\C-c\C-c" 'comment-or-uncomment-region-or-line)
+                           ))
 
-;; (add-hook 'lua-mode-hook '(lambda ()
-;; 			    (local-set-key "\C-x\C-e" 'lua-send-defun)
-;; 			    (local-set-key "\C-\M-x" 'lua-send-region)
-;; 			    (local-set-key "\C-cb" 'lua-send-buffer)
-;; 			    (local-set-key "\M-g\M-n" 'flymake-goto-next-error)
-;; 			    (local-set-key "\M-g\M-p" 'flymake-goto-prev-error)
-;; 			    ))
+(require 'flymake-lua)
+(add-hook 'lua-mode-hook 'flymake-lua-load)
+
+(add-hook 'lua-mode-hook '(lambda ()
+			    (local-set-key "\C-x\C-e" 'lua-send-defun)
+			    (local-set-key "\C-\M-x" 'lua-send-region)
+			    (local-set-key "\C-cb" 'lua-send-buffer)
+			    (local-set-key "\M-g\M-n" 'flymake-goto-next-error)
+			    (local-set-key "\M-g\M-p" 'flymake-goto-prev-error)
+			    ))
 
 ;;;;;;;;;;;;;;
 ;; ORG-MODE ;;
@@ -367,12 +518,8 @@ With negative N, comment out original line and use the absolute value."
 ;; file OR file+headline OR file+datetree
 (setq org-capture-templates
       '(
-	("f" "Filozofija & humanistika" entry (file "~/Radovi/Org/Wikith/Journal/th.org")
+	("f" "Filozofija & humanistika" entry (file "~/Radovi/Org/Wikith/Journal/remember.org")
 	 "* FILOZOFEM\n%U\n*%f*\n%i\n\n###\n\n%?")
-	("g" "Game studies & design" entry (file "~/Radovi/Org/Wikith/Journal/dev.org")
-	 "* %?\n  %i\n  %a\n  %U")       
-	("b" "Blog - Filo & Human | Game stud & design" entry (file "~/Radovi/Org/Wikith/Journal/blog.org")
-	 "* %?\n  %i\n  %a\n  %U")
 	))
 
 					; Targets include this file and any file contributing to the agenda - up to 9 levels deep
@@ -395,3 +542,23 @@ With negative N, comment out original line and use the absolute value."
 
 (fset 'pare
    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217832 14 134217765 17 10 return return 33 return] 0 "%d")) arg)))
+
+;; IG-NEWS
+(fset 'ignews-underscores
+   "\C-a__\C-e__")
+
+(fset 'ignews-stars
+   "\C-a**\C-e**")
+
+(fset 'ignews-link
+   "\C-a[\C-e#$]\C-b\C-b")
+
+(fset 'ignews-parens
+   [?\M-< ?\M-% ?\[ return ?\( return ?! ?\M-< ?\M-% ?\] return ?\) return ?!])
+
+(add-hook 'text-mode-hook '(lambda ()
+                             (local-set-key "\C-c\C-c" 'ignews-underscores)
+                             (local-set-key "\C-c\C-s" 'ignews-stars)
+                             (local-set-key "\C-c\C-l" 'ignews-link)
+                             (local-set-key "\C-c\C-p" 'ignews-parens)
+          ))
