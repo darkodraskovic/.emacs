@@ -550,15 +550,40 @@ With negative N, comment out original line and use the absolute value."
 (fset 'ignews-stars
    "\C-a**\C-e**")
 
-(fset 'ignews-link
-   "\C-a[\C-e#$]\C-b\C-b")
-
 (fset 'ignews-parens
    [?\M-< ?\M-% ?\[ return ?\( return ?! ?\M-< ?\M-% ?\] return ?\) return ?!])
 
+(defun ignews-region-underscore (start end)
+  "Insert a markup ____ around a region."
+  (interactive "r")
+  (save-excursion
+    (goto-char end) (insert "__")
+    (goto-char start) (insert "__")
+    ))
+
+(defun ignews-region-asterisk (start end)
+  "Insert a markup **** around a region."
+  (interactive "r")
+  (save-excursion
+    (goto-char end) (insert "**")
+    (goto-char start) (insert "**")
+    ))
+
+(defun ignews-region-link (start end)
+  "Insert a markup ____ around a region."
+  (interactive "r")
+  (save-excursion
+    (goto-char end) (insert "[")
+    (goto-char start) (insert "#$]")
+    ))
+
 (add-hook 'text-mode-hook '(lambda ()
+                             ;; macros
                              (local-set-key "\C-c\C-c" 'ignews-underscores)
                              (local-set-key "\C-c\C-s" 'ignews-stars)
-                             (local-set-key "\C-c\C-l" 'ignews-link)
                              (local-set-key "\C-c\C-p" 'ignews-parens)
+                             ;; funs
+                             (local-set-key "\C-c\C-u" 'ignews-region-underscore)                            
+                             (local-set-key "\C-c\C-a" 'ignews-region-asterisk)                            
+                             (local-set-key "\C-c\C-l" 'ignews-region-link)                            
           ))
