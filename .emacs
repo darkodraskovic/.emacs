@@ -112,7 +112,10 @@
 ;; tab
 (global-set-key "\C-j" 'newline-and-indent)
 
-;; MODES
+;;;;;;;;;;;;;;
+;; MODES    ;;
+;;;;;;;;;;;;;;
+
 ;; auto-load major mods
 (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))
 
@@ -129,111 +132,6 @@
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (package-initialize)
-
-(desktop-save-mode 1)
-
-;; MOVETEXT is extracted from Basic edit toolkit.
-;; It allows you to move the current line using M-up / M-down
-;; if a region is marked, it will move the region instead.
-
-(require 'move-text)
-(move-text-default-bindings)
-
-;; HELM
-(require 'helm)
-(require 'helm-config)
-(helm-mode t)
-
-;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
-;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
-;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
-(global-set-key (kbd "C-c h") 'helm-command-prefix)
-(global-unset-key (kbd "C-x c"))
-
-;; You have to bind helm-M-x to M-x manually. Otherwise, you still get Helm completion, but using the vanilla M-x that does not provides the above features like showing key bindings and TAB to open built-in documentation.
-(global-set-key (kbd "M-x") 'helm-M-x)
-(setq helm-M-x-fuzzy-match t) ;; optional fuzzy matching for helm-M-x
-
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-;; (global-set-key (kbd "C-x c o") 'helm-occur)
-(global-set-key (kbd "M-s o") 'helm-occur)
-(global-set-key (kbd "M-g s") 'helm-do-grep)
-
-;; Dired
-(require 'dired+)
-(setq dired-listing-switches "-aBhl  --group-directories-first")
-
-;; Neotree
-(require 'neotree)
-(global-set-key [f8] 'neotree-toggle)
-
-;; Yasnippet
-;; should be loaded before auto complete so that they can work together
-;; (require 'yasnippet)
-;; (yas-global-mode 1)
-;; (yas-reload-all)
-
-;; Auto-complete
-(require 'auto-complete-config)
-(ac-config-default)
-(setq ac-auto-start 3)
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-
-;; flymake
-;; (add-hook 'find-file-hook 'flymake-find-file-hook)
-
-;; HIPPIE
-(global-set-key "\M- " 'hippie-expand)
-;; completing the name of the file in the buffer. 
-;; (fset 'my-complete-file-name
-;;       (make-hippie-expand-function '(try-complete-file-name-partially
-;; 				     try-complete-file-name)))
-;; (global-set-key "\M-\\" 'my-complete-file-name)
-
-;;;;;;;;;;;;;;;;
-;; COMMANDS   ;;
-;;;;;;;;;;;;;;;;
-(transient-mark-mode 1)
-(defun select-current-line ()
-  "Select the current line"
-  (interactive)
-  (end-of-line) ; move to end of line
-  (set-mark (line-beginning-position)))
-
-(global-set-key "\C-c\C-i" 'select-current-line)
-
-(defun comment-or-uncomment-region-or-line ()
-  "Comments or uncomments the region or the current line if there's no active region."
-  (interactive)
-  (let (beg end)
-    (if (region-active-p)
-        (setq beg (region-beginning) end (region-end))
-      (setq beg (line-beginning-position) end (line-end-position)))
-    (comment-or-uncomment-region beg end)))
-
-(defun duplicate-line-or-region (&optional n)
-  "Duplicate current line, or region if active.
-With argument N, make N copies.
-With negative N, comment out original line and use the absolute value."
-  (interactive "*p")
-  (let ((use-region (use-region-p)))
-    (save-excursion
-      (let ((text (if use-region        ;Get region if active, otherwise line
-                      (buffer-substring (region-beginning) (region-end))
-                    (prog1 (thing-at-point 'line)
-                      (end-of-line)
-                      (if (< 0 (forward-line 1)) ;Go to beginning of next line, or make a new one
-                          (newline))))))
-        (dotimes (i (abs (or n 1)))     ;Insert N times, or once if not specified
-          (insert text))))
-    (if use-region nil                  ;Only if we're working with a line (not a region)
-      (let ((pos (- (point) (line-beginning-position)))) ;Save column
-        (if (> 0 n)                             ;Comment out original with negative arg
-            (comment-region (line-beginning-position) (line-end-position)))
-        (forward-line 1)
-        (forward-char pos)))))
-
-(global-set-key [?\C-c ?d] 'duplicate-line-or-region)
 
 (desktop-save-mode 1)
 
@@ -366,7 +264,8 @@ With negative N, comment out original line and use the absolute value."
 ;; JAVASCRIPT ;;
 ;;;;;;;;;;;;;;;;
 
-;; nodejs/rhino REPL
+;; nodejs/rhino REPL | js-comint.el is a comint mode for emacs which allows you to run a compatible javascript repl
+;; when paired with Steve Yegge's js2-mode it becomes a useful way of testing non-html-centric javascript code while editing it. 
 (require 'js-comint)
 (setq inferior-js-program-command "/usr/bin/node")
 ;; (setq inferior-js-program-command "/usr/bin/rhino")
@@ -394,9 +293,12 @@ With negative N, comment out original line and use the absolute value."
 
 ;; JS2-MODE hooks
 (add-hook 'js-mode-hook 'js2-minor-mode)
-(add-hook 'js2-mode-hook 'ac-js2-mode)
+(add-hook 'js2-mode-hook 'ac-js2-mode) ;; An attempt at context sensitive auto-completion for Javascript in Emacs using js2-mode's parser and Skewer-mode
 (setq js2-highlight-level 3)
+
 (add-hook 'js2-mode-hook 'show-paren-mode)
+(add-hook 'js2-mode-hook 'electric-pair-mode)
+
 (add-hook 'js2-mode-hook 'auto-complete-mode)
 (add-hook 'js2-mode-hook '(lambda() (setq ac-auto-start 4)))
 
@@ -408,13 +310,13 @@ With negative N, comment out original line and use the absolute value."
 ;; (add-hook 'js2-mode-hook
 ;; 	  (lambda () (flymake-mode t)))
 
+;; This is a collection of small refactoring functions to further the idea of a JavaScript IDE in Emacs that started with js2-mode.
 (require 'js2-refactor)
 (add-hook 'js2-mode-hook 'js2-refactor-mode)
 (js2r-add-keybindings-with-prefix "C-c C-m")
 
+;; graphically indicate the location of the fill column by drawing a thin line
 ;; (add-hook 'js2-mode-hook 'fci-mode)
-
-(add-hook 'js2-mode-hook 'electric-pair-mode)
 
 (add-hook 'js2-mode-hook (lambda ()
 			   (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
@@ -447,9 +349,9 @@ With negative N, comment out original line and use the absolute value."
 ;; ;; (add-hook 'js2-mode-hook 'jquery-doc-setup)
 
 ;; ;; HTML
-;; (add-hook 'html-mode-hook 'auto-complete-mode)
-;; (add-hook 'html-mode-hook 'yas-minor-mode)
-;; (add-hook 'html-mode-hook '(lambda() (setq ac-auto-start 4)))
+(add-hook 'html-mode-hook 'auto-complete-mode)
+(add-hook 'html-mode-hook 'yas-minor-mode)
+(add-hook 'html-mode-hook '(lambda() (setq ac-auto-start 4)))
 
 ;; ;; WEB-MODE
 ;; ;; (require 'web-mode)
@@ -520,6 +422,8 @@ With negative N, comment out original line and use the absolute value."
       '(
 	("f" "Filozofija & humanistika" entry (file "~/Radovi/Org/Wikith/Journal/remember.org")
 	 "* FILOZOFEM\n%U\n*%f*\n%i\n\n###\n\n%?")
+	("g" "Game dev & design" entry (file "~/Radovi/Org/Wikidev/Journal/remember.org")
+	 "* ENTRY\n%U\n*%f*\n%i\n\n###\n\n%?")
 	))
 
 					; Targets include this file and any file contributing to the agenda - up to 9 levels deep
@@ -543,47 +447,3 @@ With negative N, comment out original line and use the absolute value."
 (fset 'pare
    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([134217832 14 134217765 17 10 return return 33 return] 0 "%d")) arg)))
 
-;; IG-NEWS
-(fset 'ignews-underscores
-   "\C-a__\C-e__")
-
-(fset 'ignews-stars
-   "\C-a**\C-e**")
-
-(fset 'ignews-parens
-   [?\M-< ?\M-% ?\[ return ?\( return ?! ?\M-< ?\M-% ?\] return ?\) return ?!])
-
-(defun ignews-region-underscore (start end)
-  "Insert a markup ____ around a region."
-  (interactive "r")
-  (save-excursion
-    (goto-char end) (insert "__")
-    (goto-char start) (insert "__")
-    ))
-
-(defun ignews-region-asterisk (start end)
-  "Insert a markup **** around a region."
-  (interactive "r")
-  (save-excursion
-    (goto-char end) (insert "**")
-    (goto-char start) (insert "**")
-    ))
-
-(defun ignews-region-link (start end)
-  "Insert a markup ____ around a region."
-  (interactive "r")
-  (save-excursion
-    (goto-char end) (insert "[")
-    (goto-char start) (insert "#$]")
-    ))
-
-(add-hook 'text-mode-hook '(lambda ()
-                             ;; macros
-                             (local-set-key "\C-c\C-c" 'ignews-underscores)
-                             (local-set-key "\C-c\C-s" 'ignews-stars)
-                             (local-set-key "\C-c\C-p" 'ignews-parens)
-                             ;; funs
-                             (local-set-key "\C-c\C-u" 'ignews-region-underscore)                            
-                             (local-set-key "\C-c\C-a" 'ignews-region-asterisk)                            
-                             (local-set-key "\C-c\C-l" 'ignews-region-link)                            
-          ))
