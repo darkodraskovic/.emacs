@@ -5,17 +5,13 @@
  ;; If there is more than one, they won't work right.
  '(ac-dictionary-directories (quote ("~/Radovi/Org/Dict")))
  '(ac-dictionary-files nil)
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
- '(ansi-color-names-vector
-   ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
+ '(ansi-color-faces-vector [default default default italic underline success warning error])
+ '(ansi-color-names-vector ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
  '(auto-save-default nil)
  '(blink-cursor-mode nil)
  '(bmkp-last-as-first-bookmark-file "~/.emacs.d/bookmarks")
  '(custom-enabled-themes (quote (tsdh-dark)))
- '(custom-safe-themes
-   (quote
-    ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "fe20c1ea61a2836a5cea69963865b5b8df8c480ccaf3f11ad7f2e1f543f6c274" "7c4aebe99e804e7b41f34e8e2366cadd61c07977e72e4a0ee9498000a95c5d86" default)))
+ '(custom-safe-themes (quote ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "fe20c1ea61a2836a5cea69963865b5b8df8c480ccaf3f11ad7f2e1f543f6c274" "7c4aebe99e804e7b41f34e8e2366cadd61c07977e72e4a0ee9498000a95c5d86" default)))
  '(custom-theme-directory "~/.emacs.d/themes")
  '(desktop-path (quote ("~/.emacs.d/" "~" "~/.emacs.d/desktop")))
  '(dired-dwim-target t)
@@ -25,44 +21,19 @@
  '(grep-command "grep -nHir -e ")
  '(inhibit-startup-screen t)
  '(initial-frame-alist (quote ((fullscreen . maximized))))
- '(org-agenda-files
-   (quote
-    ("~/Radovi/Org/Wikidev/Projects/TheVisit.org" "~/Radovi/Org/Admin/TODO.org" "~/Radovi/Org/Wikidev/Projects/AppDevWithPixijs.org")))
+ '(org-agenda-files (quote ("~/Radovi/Org/todo.org")))
  '(org-directory "~/Radovi/Org")
  '(org-export-headline-levels 5)
- '(org-link-frame-setup
-   (quote
-    ((vm . vm-visit-folder-other-frame)
-     (vm-imap . vm-visit-imap-folder-other-frame)
-     (gnus . org-gnus-no-new-news)
-     (file . find-file)
-     (wl . wl-other-frame))))
+ '(org-link-frame-setup (quote ((vm . vm-visit-folder-other-frame) (vm-imap . vm-visit-imap-folder-other-frame) (gnus . org-gnus-no-new-news) (file . find-file) (wl . wl-other-frame))))
  '(org-refile-use-outline-path (quote file))
  '(org-src-fontify-natively t)
+ '(safe-local-variable-values (quote ((require-final-newline))))
  '(sentence-end-double-space nil)
  '(smooth-scroll-margin 12)
+ '(smooth-scrolling-mode t)
  '(tool-bar-mode nil)
  '(vc-annotate-background nil)
- '(vc-annotate-color-map
-   (quote
-    ((20 . "#dc322f")
-     (40 . "#cb4b16")
-     (60 . "#b58900")
-     (80 . "#859900")
-     (100 . "#2aa198")
-     (120 . "#268bd2")
-     (140 . "#d33682")
-     (160 . "#6c71c4")
-     (180 . "#dc322f")
-     (200 . "#cb4b16")
-     (220 . "#b58900")
-     (240 . "#859900")
-     (260 . "#2aa198")
-     (280 . "#268bd2")
-     (300 . "#d33682")
-     (320 . "#6c71c4")
-     (340 . "#dc322f")
-     (360 . "#cb4b16"))))
+ '(vc-annotate-color-map (quote ((20 . "#dc322f") (40 . "#cb4b16") (60 . "#b58900") (80 . "#859900") (100 . "#2aa198") (120 . "#268bd2") (140 . "#d33682") (160 . "#6c71c4") (180 . "#dc322f") (200 . "#cb4b16") (220 . "#b58900") (240 . "#859900") (260 . "#2aa198") (280 . "#268bd2") (300 . "#d33682") (320 . "#6c71c4") (340 . "#dc322f") (360 . "#cb4b16"))))
  '(vc-annotate-very-old-color nil)
  '(yas-indent-line (quote auto)))
 (custom-set-faces
@@ -108,6 +79,7 @@
 ;; GLOBAL KEYBINDINGS
 (global-set-key (kbd "C-z") 'undo)
 (global-set-key (kbd "M-i") 'imenu)
+(define-key global-map (kbd "RET") 'newline-and-indent)
 
 ;; tab
 (global-set-key "\C-j" 'newline-and-indent)
@@ -260,6 +232,7 @@ With negative N, comment out original line and use the absolute value."
                               (setq-local resize-mini-windows nil)
                               ))
 
+(require 'ein)
 ;;;;;;;;;;;;;;;;
 ;; JAVASCRIPT ;;
 ;;;;;;;;;;;;;;;;
@@ -306,10 +279,35 @@ With negative N, comment out original line and use the absolute value."
 
 (add-hook 'js2-mode-hook 'linum-mode)
 
+
 ;; (require 'flymake-jslint)
 ;; (add-hook 'js2-mode-hook
 ;; 	  (lambda () (flymake-mode t)))
 
+;; ESLINT
+;; http://www.flycheck.org/en/latest/user/quickstart.html#flycheck-quickstart
+(require 'flycheck)
+
+;; turn on flychecking globally
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
+;; disable jshint since we prefer eslint checking
+(setq-default flycheck-disabled-checkers
+  (append flycheck-disabled-checkers
+          '(javascript-jshint)))
+
+;; use eslint with js2-mode
+(flycheck-add-mode 'javascript-eslint 'js2-mode)
+
+;; customize flycheck temp file prefix
+(setq-default flycheck-temp-prefix ".flycheck")
+
+;; disable json-jsonlist checking for json files
+(setq-default flycheck-disabled-checkers
+  (append flycheck-disabled-checkers
+    '(json-jsonlist)))
+
+;; JS2-REFACTOR
 ;; This is a collection of small refactoring functions to further the idea of a JavaScript IDE in Emacs that started with js2-mode.
 (require 'js2-refactor)
 (add-hook 'js2-mode-hook 'js2-refactor-mode)
@@ -321,6 +319,14 @@ With negative N, comment out original line and use the absolute value."
 (add-hook 'js2-mode-hook (lambda ()
 			   (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
 			   ))
+
+;; ;; CSS
+(add-to-list 'auto-mode-alist '("\\.scss\\'" . css-mode))
+(add-hook 'css-mode-hook (lambda ()
+                           (local-set-key "\C-c\C-u" 'comment-or-uncomment-region)
+                           (local-set-key "\C-c\C-c" 'comment-or-uncomment-region-or-line)
+                           ))
+
 
 ;; ;; GLSL mode
 ;; ;; (add-hook 'glsl-mode-hook 'auto-complete-mode)
@@ -396,7 +402,6 @@ With negative N, comment out original line and use the absolute value."
 (add-to-list 'auto-mode-alist '("\\.wiki$" . org-mode))
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
-;; (define-key global-map "\C-cy" 'org-cycle-agenda-files)
 (setq org-log-done 'time)
 
 ;; highlight src syntax
